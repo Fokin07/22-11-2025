@@ -6,5 +6,5 @@ import "sync"
 type Task struct {
 	ID    int
 	Links map[string]string
-	mu    sync.RWMutex
+	Mu    sync.RWMutex
 }
