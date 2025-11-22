@@ -2,10 +2,13 @@ package delivery
 
 import (
 	"LinksChecker/internal/delivery/dto"
+	"LinksChecker/internal/pkg/pdf"
 	"LinksChecker/internal/service/checker"
 	"encoding/json"
+	"log"
 	"net/http"
 	"sync/atomic"
+	"time"
 )
 
 // Handler provides HTTP handlers
@@ -70,13 +73,44 @@ func (h *Handler) GenerateReport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var req dto.ReportRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	h.currentTasks.Add(1)
 	defer h.currentTasks.Add(-1)
+
+	tasks, err := h.checker.GetAll(req.LinksList)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	pdfReport := pdf.GenerateReport(tasks)
+
+	w.Header().Set("Content-Type", "application/pdf")
+	w.Header().Set("Content-Disposition", "attachment; filename=report.pdf")
+	w.Write(pdfReport)
 }
 
 // WaitForActiveTasks awaiting completion of active tasks
 func (h *Handler) WaitForActiveTasks(timeout int) bool {
+	log.Printf("Waiting for completion of %d tasks...", h.currentTasks.Load())
 
+	for range timeout {
+		currentTasks := h.currentTasks.Load()
+		if currentTasks == 0 {
+			log.Println("All tasks completed")
+			return true
+		}
+
+		log.Printf("Waiting for %d tasks...", currentTasks)
+		time.Sleep(1 * time.Second)
+	}
+
+	log.Printf("Timeout, %d tasks is active", h.currentTasks.Load())
 	return false
 }
 

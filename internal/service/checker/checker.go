@@ -1,6 +1,7 @@
 package checker
 
 import (
+	"LinksChecker/internal/models"
 	"LinksChecker/internal/repository"
 	"errors"
 	"net/http"
@@ -71,4 +72,13 @@ func (s *Service) CheckLinks(links []string) (map[string]string, int, error) {
 	id := s.repo.Save(result)
 
 	return result, id, nil
+}
+
+// GetAll returns all tasks
+func (s *Service) GetAll(ids []int) ([]*models.Task, error) {
+	if len(ids) == 0 {
+		return nil, errors.New("No links list provided")
+	}
+
+	return s.repo.GetAll(ids), nil
 }

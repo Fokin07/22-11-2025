@@ -50,7 +50,7 @@ func (s *Storage) Get(id int) (*models.Task, error) {
 	return task, nil
 }
 
-// GetAll returns a copy of all tasks
+// GetAll returns all tasks
 func (s *Storage) GetAll(ids []int) []*models.Task {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
