@@ -1,7 +1,9 @@
 package delivery
 
 import (
+	"LinksChecker/internal/delivery/dto"
 	"LinksChecker/internal/service/checker"
+	"encoding/json"
 	"net/http"
 	"sync/atomic"
 )
@@ -28,6 +30,14 @@ func NewHandler(checker *checker.Service) *Handler {
 	}
 }
 
+func (h *Handler) writeData(w http.ResponseWriter, data any, statusCode int) {
+	w.Header().Set("Content-Type", "application/json charset=UTF-8")
+	w.WriteHeader(statusCode)
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
 // CheckLinks processes requests to check the availability of links
 func (h *Handler) CheckLinks(w http.ResponseWriter, r *http.Request) {
 	if !h.isReady.Load().(bool) {
@@ -35,8 +45,22 @@ func (h *Handler) CheckLinks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var req dto.CheckLinksRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	h.currentTasks.Add(1)
 	defer h.currentTasks.Add(-1)
+
+	links, id, err := h.checker.CheckLinks(req.Links)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	h.writeData(w, dto.CheckLinksResponse{Links: links, LinksNum: id}, http.StatusOK)
 }
 
 // GenerateReport processes requests to generate a PDF report
