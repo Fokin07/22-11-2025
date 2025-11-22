@@ -71,11 +71,11 @@ func (s *Storage) SaveState() {
 	defer s.mu.RUnlock()
 
 	state := struct {
-		Tasks  map[int]*models.Task `json:"tasks"`
-		NextID int                  `json:"next_id"`
+		Tasks map[int]*models.Task `json:"tasks"`
+		Count int                  `json:"count"`
 	}{
-		Tasks:  s.tasks,
-		NextID: s.count,
+		Tasks: s.tasks,
+		Count: s.count,
 	}
 
 	data, err := json.Marshal(state)
@@ -88,7 +88,7 @@ func (s *Storage) SaveState() {
 		fmt.Printf("Error writing state file: %v\n", err)
 	}
 
-	fmt.Printf("State saved: %d tasks, next ID: %d\n", len(s.tasks), s.count)
+	fmt.Printf("State saved: %d tasks, count: %d\n", len(s.tasks), s.count)
 }
 
 // RestoreState restores the state after shutdown/restart
@@ -107,8 +107,8 @@ func (s *Storage) RestoreState() {
 	}
 
 	var state struct {
-		Tasks  map[int]*models.Task `json:"tasks"`
-		NextID int                  `json:"next_id"`
+		Tasks map[int]*models.Task `json:"tasks"`
+		Count int                  `json:"count"`
 	}
 
 	if err := json.Unmarshal(data, &state); err != nil {
@@ -117,7 +117,7 @@ func (s *Storage) RestoreState() {
 	}
 
 	s.tasks = state.Tasks
-	s.count = state.NextID
+	s.count = state.Count
 
 	fmt.Printf("State restored: %d tasks, next ID: %d\n", len(s.tasks), s.count)
 }
