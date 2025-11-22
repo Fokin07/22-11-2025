@@ -19,11 +19,15 @@ type Storage struct {
 
 // New init in-memory storage
 func New(fileName string) *Storage {
-	return &Storage{
+	storage := &Storage{
 		tasks:    make(map[int]*models.Task),
 		count:    0,
 		saveFile: fileName,
 	}
+
+	storage.RestoreState()
+
+	return storage
 }
 
 // Save saves a new link verification task

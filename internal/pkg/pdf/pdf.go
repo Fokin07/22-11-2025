@@ -59,7 +59,7 @@ func addTaskSection(pdf *gofpdf.Fpdf, task *models.Task) {
 
 func getStatusSymbol(status string) string {
 	if status == "available" {
-		return "✓"
+		return "+"
 	}
-	return "✗"
+	return "-"
 }
