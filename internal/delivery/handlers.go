@@ -38,6 +38,7 @@ func (h *Handler) writeData(w http.ResponseWriter, data any, statusCode int) {
 	w.WriteHeader(statusCode)
 	if err := json.NewEncoder(w).Encode(data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 }
 

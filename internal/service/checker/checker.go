@@ -58,13 +58,14 @@ func (s *Service) CheckLinks(links []string) (map[string]string, int, error) {
 
 	for _, link := range links {
 		wg.Add(1)
-		go func(l string) {
+		currentLink := link
+		go func() {
 			defer wg.Done()
-			status := s.CheckLink(l)
+			status := s.CheckLink(currentLink)
 			mu.Lock()
-			result[l] = status
+			result[currentLink] = status
 			mu.Unlock()
-		}(link)
+		}()
 	}
 
 	wg.Wait()

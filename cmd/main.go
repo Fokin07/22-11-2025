@@ -16,6 +16,10 @@ import (
 	"time"
 )
 
+var (
+	graceful = flag.Bool("graceful", false, "enable graceful restart")
+)
+
 func main() {
 	flag.Parse()
 
@@ -67,24 +71,24 @@ func main() {
 		}
 	}()
 
-	// Ожидаем завершения
+	// Awaiting completion
 	<-done
 	log.Println("Server stopped")
 }
 
 func gracefulShutdown(server *http.Server, handler *delivery.Handler, repo repository.Repo, done chan bool) {
-	// Ждем завершения активных задач (максимум 30 секунд)
+	// Waiting for active tasks to complete (maximum 30 seconds)
 	if handler.WaitForActiveTasks(30) {
 		log.Println("All active tasks completed successfully")
 	} else {
 		log.Println("Some tasks were not completed within timeout")
 	}
 
-	// Сохраняем состояние перед остановкой
+	// Saving the state before stopping
 	log.Println("Saving state before shutdown...")
 	repo.SaveState()
 
-	// Останавливаем HTTP сервер
+	// Stopping the HTTP server
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -97,18 +101,18 @@ func gracefulShutdown(server *http.Server, handler *delivery.Handler, repo repos
 }
 
 func gracefulRestart(server *http.Server, handler *delivery.Handler, repo repository.Repo) {
-	// Ждем завершения активных задач
+	// Waiting for active tasks to be completed
 	if handler.WaitForActiveTasks(30) {
 		log.Println("All active tasks completed, proceeding with restart")
 	} else {
 		log.Println("Proceeding with restart despite active tasks")
 	}
 
-	// Сохраняем состояние перед перезапуском
+	// Saving the state before restarting
 	log.Println("Saving state before restart...")
 	repo.SaveState()
 
-	// Останавливаем HTTP сервер
+	// Stopping the HTTP server
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -117,7 +121,7 @@ func gracefulRestart(server *http.Server, handler *delivery.Handler, repo reposi
 		log.Printf("Could not gracefully shutdown the server for restart: %v\n", err)
 	}
 
-	// Запускаем новый экземпляр
+	// Launching a new instance
 	execName, err := os.Executable()
 	if err != nil {
 		log.Fatalf("Could not get executable name: %v\n", err)
