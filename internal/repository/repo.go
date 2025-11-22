@@ -4,8 +4,9 @@ import "LinksChecker/internal/models"
 
 // Repo interface for working with storage
 type Repo interface {
-	Save(links []string) int
-	Get(id int) *models.Task
-	Update(taskID int, link string, status string)
-	GetAll() map[int]*models.Task
+	Save(links map[string]string) int
+	Get(id int) (*models.Task, error)
+	GetAll(ids []int) []*models.Task
+	SaveState()
+	RestoreState()
 }
