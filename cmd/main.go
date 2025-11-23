@@ -16,11 +16,8 @@ import (
 	"time"
 )
 
-var (
-	graceful = flag.Bool("graceful", false, "enable graceful restart")
-)
-
 func main() {
+	flag.Bool("graceful", false, "enable graceful restart")
 	flag.Parse()
 
 	repo := inmemory.New("state.json")

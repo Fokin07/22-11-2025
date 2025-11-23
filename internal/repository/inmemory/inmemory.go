@@ -123,7 +123,7 @@ func (s *Storage) RestoreState() {
 	s.tasks = state.Tasks
 	s.count = state.Count
 
-	fmt.Printf("State restored: %d tasks, next ID: %d\n", len(s.tasks), s.count)
+	fmt.Printf("State restored: %d tasks, count: %d\n", len(s.tasks), s.count)
 }
 
 // Cleanup deletes the temporary status file
